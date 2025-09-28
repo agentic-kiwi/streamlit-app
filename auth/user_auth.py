@@ -88,9 +88,15 @@ class UserAuth:
         if username in self.users:
             self.users[username]["api_key"] = api_key
             self.save_users()
+            # Reload users to ensure data is fresh
+            self.load_users()
+            return True
+        return False
     
     def get_user_api_key(self, username: str) -> Optional[str]:
         """Get user's saved API key"""
+        # Reload users to get latest data
+        self.load_users()
         if username in self.users:
             return self.users[username].get("api_key")
         return None

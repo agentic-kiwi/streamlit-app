@@ -12,13 +12,22 @@ def get_user_api_key():
     # Check if user has saved API key
     saved_api_key = auth.get_user_api_key(current_user)
     
-    # Initialize session state
+    # Initialize session state with saved key if available
     if "user_api_key" not in st.session_state:
         st.session_state.user_api_key = saved_api_key or ""
+    
+    # If we have a saved key but session is empty, load it
+    if not st.session_state.user_api_key and saved_api_key:
+        st.session_state.user_api_key = saved_api_key
     
     # Show current status if API key exists
     if st.session_state.user_api_key:
         st.sidebar.success("✅ API Key Connected")
+        if saved_api_key == st.session_state.user_api_key:
+            st.sidebar.info("🔐 Using saved API key")
+        else:
+            st.sidebar.info("📝 Session API key")
+            
         col1, col2 = st.sidebar.columns([3, 1])
         with col1:
             masked_key = "*" * 8 + st.session_state.user_api_key[-4:]
@@ -31,6 +40,14 @@ def get_user_api_key():
     
     # Input for new API key
     st.sidebar.markdown("### 🔑 API Key Setup")
+    
+    # Show if user has a saved key
+    if saved_api_key:
+        st.sidebar.info(f"💡 You have a saved API key ending in ...{saved_api_key[-4:]}")
+        if st.sidebar.button("🔑 Load Saved Key", key="load_saved_key"):
+            st.session_state.user_api_key = saved_api_key
+            st.rerun()
+    
     api_key = st.sidebar.text_input(
         "Your Google API Key", 
         type="password",
@@ -40,7 +57,7 @@ def get_user_api_key():
     )
     
     # Option to save API key
-    save_key = st.sidebar.checkbox("💾 Remember my API key", help="Save API key for future sessions")
+    save_key = st.sidebar.checkbox("💾 Remember my API key", help="Save API key for future sessions", value=True)
     
     if api_key:
         # Validate API key format
