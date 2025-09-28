@@ -5,7 +5,7 @@ from chains.basic_qa import ask_question
 from chains.conversational import chat_with_memory
 from chains.parallel_analysis import analyze_from_multiple_perspectives
 from chains.structured_analysis import analyze_topic
-from config.gemini_setup import get_gemini_model, get_topic
+from config.gemini_setup import get_gemini_model, get_topic, check_password, get_user_api_key
 from langchain.memory import ConversationBufferMemory
 
 # Load environment variables
@@ -128,6 +128,15 @@ with st.sidebar:
     # Footer
     st.caption("Built with LangChain & Gemini")
 
+# Check password first
+if not check_password():
+    st.stop()
+
+# Get user API key
+api_key = get_user_api_key()
+if not api_key:
+    st.stop()
+
 # Main content area
 st.title(f"🤖 AI Learning Assistant")
 
@@ -173,7 +182,7 @@ if prompt := st.chat_input("Ask me anything about " + st.session_state.current_t
         with st.spinner("Thinking..."):
             try:
                 if mode == "Quick Answer":
-                    response = ask_question(prompt)
+                    response = ask_question(prompt, api_key)
                     st.markdown(response)
                     st.session_state.messages.append({
                         "role": "assistant",
@@ -181,7 +190,7 @@ if prompt := st.chat_input("Ask me anything about " + st.session_state.current_t
                     })
                 
                 elif mode == "Deep Dive":
-                    response = analyze_topic(prompt)
+                    response = analyze_topic(prompt, api_key)
                     st.markdown("### 🔍 Deep Dive Analysis")
                     
                     # Try to parse as structured data
@@ -227,7 +236,7 @@ if prompt := st.chat_input("Ask me anything about " + st.session_state.current_t
                     })
                 
                 elif mode == "Multiple Viewpoints":
-                    results = analyze_from_multiple_perspectives(prompt)
+                    results = analyze_from_multiple_perspectives(prompt, api_key)
                     st.markdown("### 👥 Multiple Viewpoints")
                     
                     perspectives_content = {}
@@ -257,7 +266,7 @@ if prompt := st.chat_input("Ask me anything about " + st.session_state.current_t
                         ("human", "{question}")
                     ])
                     
-                    chain = template | get_gemini_model()
+                    chain = template | get_gemini_model(api_key=api_key)
                     response = chain.invoke({
                         "question": prompt,
                         "chat_history": chat_history
