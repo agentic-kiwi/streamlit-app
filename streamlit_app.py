@@ -5,7 +5,9 @@ from chains.basic_qa import ask_question
 from chains.conversational import chat_with_memory
 from chains.parallel_analysis import analyze_from_multiple_perspectives
 from chains.structured_analysis import analyze_topic
-from config.gemini_setup import get_gemini_model, get_topic, check_password, get_user_api_key
+from config.gemini_setup import get_gemini_model, get_topic
+from auth.user_auth import check_authentication, show_user_info
+from auth.api_manager import get_user_api_key
 from langchain.memory import ConversationBufferMemory
 
 # Load environment variables
@@ -18,6 +20,11 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Check authentication first
+authenticated, auth = check_authentication()
+if not authenticated:
+    st.stop()
 
 # Initialize session state
 if "messages" not in st.session_state:
@@ -59,9 +66,17 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Get user API key
+api_key = get_user_api_key()
+if not api_key:
+    st.stop()
+
 # Sidebar configuration
 with st.sidebar:
     st.title("🎓 Learning Assistant Settings")
+    
+    # Show user info
+    show_user_info()
     
     # Topic management
     st.subheader("📚 Topic Configuration")
@@ -127,15 +142,6 @@ with st.sidebar:
     
     # Footer
     st.caption("Built with LangChain & Gemini")
-
-# Check password first
-if not check_password():
-    st.stop()
-
-# Get user API key
-api_key = get_user_api_key()
-if not api_key:
-    st.stop()
 
 # Main content area
 st.title(f"🤖 AI Learning Assistant")

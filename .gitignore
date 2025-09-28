@@ -30,3 +30,6 @@ Thumbs.db
 .mcp.json
 *.log
 .streamlit/secrets.toml
+
+# Authentication
+auth/users.json
