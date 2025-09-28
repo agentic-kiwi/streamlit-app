@@ -16,26 +16,59 @@ def check_password():
             st.session_state["password_correct"] = False
 
     if "password_correct" not in st.session_state:
-        st.text_input("App Password", type="password", on_change=password_entered, key="password")
-        st.info("Enter the app password to continue")
+        st.markdown("### 🔐 App Access")
+        st.text_input("App Password", type="password", on_change=password_entered, key="password", placeholder="Enter app password...")
+        st.info("💡 Default password is 'demo123' - ask admin to change it in app settings")
+        st.markdown("---")
         return False
     elif not st.session_state["password_correct"]:
-        st.text_input("App Password", type="password", on_change=password_entered, key="password")
-        st.error("Incorrect password")
+        st.markdown("### 🔐 App Access")
+        st.text_input("App Password", type="password", on_change=password_entered, key="password", placeholder="Enter app password...")
+        st.error("❌ Incorrect password")
+        st.info("💡 Contact admin if you need the current password")
+        st.markdown("---")
         return False
     return True
 
 def get_user_api_key():
-    """Second security layer - user provides their own API key"""
+    """Second security layer - user provides their own API key with persistence"""
+    # Initialize session state for API key
+    if "user_api_key" not in st.session_state:
+        st.session_state.user_api_key = ""
+    
+    # Show current status
+    if st.session_state.user_api_key:
+        st.sidebar.success("✅ API Key Connected")
+        col1, col2 = st.sidebar.columns([3, 1])
+        with col1:
+            st.sidebar.text("Key: " + "*" * 8 + st.session_state.user_api_key[-4:])
+        with col2:
+            if st.sidebar.button("🔄", help="Change API Key"):
+                st.session_state.user_api_key = ""
+                st.rerun()
+        return st.session_state.user_api_key
+    
+    # Input for new API key
     api_key = st.sidebar.text_input(
         "Your Google API Key", 
         type="password",
-        help="Get your API key from https://aistudio.google.com/app/apikey"
+        help="Get your API key from https://aistudio.google.com/app/apikey",
+        placeholder="Enter your Google Gemini API key..."
     )
     
-    if not api_key:
+    if api_key:
+        # Validate API key format (basic check)
+        if api_key.startswith("AIza") and len(api_key) > 30:
+            st.session_state.user_api_key = api_key
+            st.sidebar.success("API Key saved for this session!")
+            st.rerun()
+        else:
+            st.sidebar.error("Invalid API key format. Should start with 'AIza'")
+            return None
+    else:
         st.sidebar.warning("Please enter your Google API Key")
-        st.sidebar.info("This ensures you control your own usage and costs")
+        st.sidebar.info("💡 This ensures you control your own usage and costs")
+        st.sidebar.markdown("[Get your API key →](https://aistudio.google.com/app/apikey)")
         return None
     
     return api_key
