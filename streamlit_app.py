@@ -8,6 +8,8 @@ from chains.structured_analysis import analyze_topic
 from config.gemini_setup import get_gemini_model, get_topic
 from auth.user_auth import check_authentication, show_user_info
 from auth.api_manager import get_user_api_key
+from utils.chat_manager import show_chat_export_ui
+from utils.gdrive_integration import show_quick_gdrive_actions
 from langchain.memory import ConversationBufferMemory
 
 # Load environment variables
@@ -131,6 +133,16 @@ with st.sidebar:
             ["gemini-2.5-flash", "gemini-1.5-pro"],
             help="Select the AI model to use"
         )
+    
+    st.divider()
+    
+    # Chat Export & Save Features
+    show_chat_export_ui()
+    
+    st.divider()
+    
+    # Google Drive Integration
+    show_quick_gdrive_actions()
     
     st.divider()
     
